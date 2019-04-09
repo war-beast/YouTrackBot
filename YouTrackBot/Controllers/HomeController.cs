@@ -1,37 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using MihaZupan;
+using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using YouTrackBot.Models;
 
 namespace YouTrackBot.Controllers
 {
     public class HomeController : Controller
     {
+        private string key = "864722583:AAHxMFbwGUSU_8jkdskKNMVa2_THOdQk1pQ";
+
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult About()
+        [HttpGet]
+        [Route("api/[controller]/[action]")]
+        public async Task<IActionResult> GetCommand()
         {
-            ViewData["Message"] = "Your application description page.";
+            string retVal = "";
 
-            return View();
-        }
+            try { 
+                var bot = new Telegram.Bot.TelegramBotClient(key, new HttpToSocks5Proxy("127.0.0.1", 9050));
+                await bot.SetWebhookAsync("");
 
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
+                int offset = 0; // отступ по сообщениям
+                var updates = await bot.GetUpdatesAsync(offset); // получаем массив обновлений
+                foreach (var update in updates) // Перебираем все обновления
+                {
+                    var message = update.Message;
+                    if (message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+                    {
+                        retVal += "UP: " + update.Id + " Message: " + message.Text + "<br />";
+                    }
+                    offset = update.Id + 1;
+                }
+            }
+            catch(Exception ex)
+            {
+                retVal = ex.Message;
+                return BadRequest(retVal);
+            }
 
-            return View();
-        }
 
-        public IActionResult Privacy()
-        {
-            return View();
+            return Ok(retVal);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

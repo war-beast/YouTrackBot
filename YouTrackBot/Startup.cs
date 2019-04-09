@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +31,12 @@ namespace YouTrackBot
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardLimit = 2;
+                options.KnownProxies.Add(IPAddress.Parse("127.0.0.1"));
+                options.ForwardedForHeaderName = "X-Forwarded-For-My-Custom-Header-Name";
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
