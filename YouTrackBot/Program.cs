@@ -2,11 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using MihaZupan;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
+using YouTrackSharp.Projects;
 
 namespace YouTrackBot
 {
@@ -15,6 +18,8 @@ namespace YouTrackBot
         private static TelegramBotClient Bot { get; set; }
         private static CustomSettings Settings { get; set; }
         private static int QueryId { get; set; } = 1;
+        private static List<Project> Projects { get; set; } = new List<Project>();
+        private static YouTrackPoster youTrackPoster;
 
         public static void Main(string[] args)
         {
@@ -23,7 +28,15 @@ namespace YouTrackBot
                 .AddJsonFile("appsettings.json");
 
             var configuration = builder.Build();
-            Settings = new CustomSettings { TelegramKey = configuration["CustomSettings:TelegramKey"], SocksProxy = configuration["CustomSettings:SocksProxy"], ProxyPort = Int32.Parse(configuration["CustomSettings:ProxyPort"]) };
+            Settings = new CustomSettings {
+                TelegramKey = configuration["CustomSettings:TelegramKey"],
+                SocksProxy = configuration["CustomSettings:SocksProxy"],
+                ProxyPort = Int32.Parse(configuration["CustomSettings:ProxyPort"]),
+                YouTrackToken = configuration["CustomSettings:YouTrackToken"]
+            };
+
+            youTrackPoster = new YouTrackPoster(Settings);
+            Projects = Task.Run(async () => await youTrackPoster.GetProjects()).Result;
 
             Bot = new TelegramBotClient(Settings.TelegramKey, new HttpToSocks5Proxy(Settings.SocksProxy, Settings.ProxyPort));
             var me = Bot.GetMeAsync().Result;
@@ -67,15 +80,30 @@ namespace YouTrackBot
 
         private static string GetResult(InlineQueryEventArgs inlineQueryEventArgs)
         {
+            string result = "";
             var query = inlineQueryEventArgs.InlineQuery.Query;
             var command = query.Substring(0, query.IndexOf("///")).Split(' ');
-            var projectName = command[0];
+            var projectName = command[0].ToLower();
             var taskType = command[1].ToLower();
             taskType = taskType.Contains("task") || taskType.Contains("feature") || taskType.Contains("bug") ? taskType : "";
             var taskName = command[2];
             var taskDesc = BuildDescription(command);
 
-            var result = $"Проект: {projectName}\r\nТип задачи: {taskType}\r\nНаменование: {taskName}\r\nОписание: {taskDesc}\r\nРезультат: Ok";
+            Project currentProject = null;
+            foreach(var item in Projects)
+            {
+                if (item.Name.ToLower() == projectName.ToLower() || item.ShortName.ToLower() == projectName.ToLower()) { 
+                    currentProject = item;
+                    break;
+                }
+            }
+
+            if (currentProject == null)
+                result = $"Проект с именем {projectName} не найден!";
+            else {
+                result = Task.Run(async () => await youTrackPoster.PostIssue(currentProject, taskName, taskType, taskDesc)).Result;
+                //result = $"Проект: {projectName}\r\nТип задачи: {taskType}\r\nНаменование: {taskName}\r\nОписание: {taskDesc}\r\nРезультат: Ok";
+            }
             return result;
         }
 
