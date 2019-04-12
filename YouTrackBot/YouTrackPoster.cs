@@ -11,12 +11,13 @@ namespace YouTrackBot
 {
     public class YouTrackPoster
     {
+        public List<Project> Projects { get; set; }
+
         private static CustomSettings Settings { get; set; }
         private BearerTokenConnection Connection { get; set; }
 
         public YouTrackPoster(CustomSettings settings)
         {
-
             Settings = settings;
             Connection = new BearerTokenConnection("http://toshiba-note:8080/", Settings.YouTrackToken);
         }
