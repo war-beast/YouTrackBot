@@ -5,7 +5,7 @@
 Мы используем для проектной работы YouTrack (постановка заадч) и Телеграм (коммуникация). Было бы удобно, если бы можно было писать боту поставить задачу прямо в проектном чате. Для создания задач можно использовать REST API: https://www.jetbrains.com/help/youtrack/standalone/youtrack-rest-api-reference.html
 
 Формат сообщения боту: 
-@bot project task/feature/bug name description///, где "project" - краткое имя проекта (ID), "///" -признак конза команды
+@bot project task/feature/bug name description///, где "project" - краткое имя проекта (ID), "///" -признак конца команды
 
 Бот ставит задачу и отвечает ссылкой на созданную задачу или сообщает об ошибке.
 
