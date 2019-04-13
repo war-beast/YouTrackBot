@@ -18,3 +18,4 @@
 
 #Настройка YouTrack
 1. Получить токен авторизации администратора в YouTrak и вставить его в appsettings.json, параметр YouTrackToken.
+2. URL-адрес панели управления вписать в appsettings.json, параметр YouTrackUrl.
