@@ -19,7 +19,7 @@ namespace YouTrackBot
         public YouTrackPoster(CustomSettings settings)
         {
             Settings = settings;
-            Connection = new BearerTokenConnection("http://toshiba-note:8080/", Settings.YouTrackToken);
+            Connection = new BearerTokenConnection(Settings.YouTrackUrl, Settings.YouTrackToken);
         }
 
         public async Task<List<Project>> GetProjects()

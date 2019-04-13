@@ -1,15 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using MihaZupan;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
-using YouTrackSharp.Projects;
 
 namespace YouTrackBot
 {
@@ -18,6 +14,7 @@ namespace YouTrackBot
         private static TelegramBotClient Bot { get; set; }
         private static CustomSettings Settings { get; set; }
         private static int QueryId { get; set; } = 1;
+        private static IServiceProvider provider;
 
         public static void Main(string[] args)
         {
@@ -30,7 +27,8 @@ namespace YouTrackBot
                 TelegramKey = configuration["CustomSettings:TelegramKey"],
                 SocksProxy = configuration["CustomSettings:SocksProxy"],
                 ProxyPort = Int32.Parse(configuration["CustomSettings:ProxyPort"]),
-                YouTrackToken = configuration["CustomSettings:YouTrackToken"]
+                YouTrackToken = configuration["CustomSettings:YouTrackToken"],
+                YouTrackUrl = configuration["CustomSettings:YouTrackUrl"]
             };
 
             Bot = new TelegramBotClient(Settings.TelegramKey, new HttpToSocks5Proxy(Settings.SocksProxy, Settings.ProxyPort));
